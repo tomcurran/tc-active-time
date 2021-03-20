@@ -5,14 +5,14 @@ module.exports = {
     node: true,
   },
   extends: [
-    "eslint:recommended",
-    "google",
+    'eslint:recommended',
+    'google',
   ],
   parserOptions: {
     ecmaVersion: 2017,
   },
   rules: {
-    "quotes": ["error", "double"],
-    "max-len": ["error", {"code": 120}],
+    'quotes': ['error', 'single'],
+    'max-len': ['error', {'code': 120}],
   },
 };
