@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const admin = require('firebase-admin');
 // @ts-ignore
 admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
+  serviceAccountId: (functions.config().credential.client_email),
 });
 
 const OAUTH_REDIRECT_URI = `https://${process.env.GCLOUD_PROJECT}.firebaseapp.com/popup.html`;
