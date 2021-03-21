@@ -70,31 +70,38 @@ exports.token = functions.https.onRequest(async (req, res) => {
 
   try {
     return cookieParser()(req, res, async () => {
-      functions.logger.log('Received verification state', req.cookies.state);
-      functions.logger.log('Received state', req.query.state);
-      if (!req.cookies.state) {
-        throw new Error('State cookie not set or expired. Maybe you took too long to authorize. Please try again.');
-      } else if (req.cookies.state !== req.query.state) {
-        throw new Error('State validation failed');
+      try {
+        functions.logger.log('Received verification state', req.cookies.state);
+        functions.logger.log('Received state', req.query.state);
+        if (!req.cookies.state) {
+          throw new Error('State cookie not set or expired. Maybe you took too long to authorize. Please try again.');
+        } else if (req.cookies.state !== req.query.state) {
+          throw new Error('State validation failed');
+        }
+        functions.logger.log('Received auth code', req.query.code);
+        const results = await oauth2.getToken({
+          code: req.query.code,
+          client_id: functions.config().strava.client_id,
+          client_secret: functions.config().strava.client_secret,
+        });
+        functions.logger.log('Auth code exchange result received', JSON.parse(JSON.stringify(results)));
+
+        // We have an Strava access token and the user identity now.
+        const accessToken = results.token.access_token;
+        const stravaUserID = results.token.athlete.id;
+        const profilePic = results.token.athlete.profile;
+        const userName = results.token.athlete.firstname + ' ' + results.token.athlete.lastname;
+
+        // Create a Firebase account and get the Custom Auth Token.
+        const firebaseToken = await createFirebaseAccount(stravaUserID, userName, profilePic, accessToken);
+        // Serve an HTML page that signs the user in and updates the user profile.
+        return res.jsonp({token: firebaseToken});
+      } catch (error) {
+        functions.logger.error(error);
+        return res.jsonp({
+          error: error.toString(),
+        });
       }
-      functions.logger.log('Received auth code', req.query.code);
-      const results = await oauth2.getToken({
-        code: req.query.code,
-        client_id: functions.config().strava.client_id,
-        client_secret: functions.config().strava.client_secret,
-      });
-      functions.logger.log('Auth code exchange result received', JSON.parse(JSON.stringify(results)));
-
-      // We have an Strava access token and the user identity now.
-      const accessToken = results.token.access_token;
-      const stravaUserID = results.token.athlete.id;
-      const profilePic = results.token.athlete.profile;
-      const userName = results.token.athlete.firstname + ' ' + results.token.athlete.lastname;
-
-      // Create a Firebase account and get the Custom Auth Token.
-      const firebaseToken = await createFirebaseAccount(stravaUserID, userName, profilePic, accessToken);
-      // Serve an HTML page that signs the user in and updates the user profile.
-      return res.jsonp({token: firebaseToken});
     });
   } catch (error) {
     functions.logger.error(error);
