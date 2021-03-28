@@ -15,7 +15,7 @@ admin.initializeApp({
 
 const OAUTH_REDIRECT_URI = `https://${process.env.GCLOUD_PROJECT}.firebaseapp.com/popup.html`;
 // const OAUTH_REDIRECT_URI = 'http://localhost:5000/popup.html';
-const OAUTH_SCOPES = 'activity:read_all';
+const OAUTH_SCOPES = 'activity:read';
 
 /*
  * Creates a configured simple-oauth2 client for Strava.
