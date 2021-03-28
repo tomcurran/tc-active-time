@@ -43,9 +43,9 @@ exports.redirect = functions.https.onRequest((req, res) => {
   const oauth2 = stravaOAuth2Client();
 
   cookieParser()(req, res, () => {
-    const state = req.cookies.state || crypto.randomBytes(20).toString('hex');
+    const state = req.cookies.__session || crypto.randomBytes(20).toString('hex');
     functions.logger.log('Setting verification state', state);
-    res.cookie('state', state.toString(), {
+    res.cookie('__session', state.toString(), {
       maxAge: 3600000,
       secure: true,
       httpOnly: true,
@@ -72,12 +72,13 @@ exports.token = functions.https.onRequest(async (req, res) => {
   try {
     return cookieParser()(req, res, async () => {
       try {
-        functions.logger.log('Received verification state', req.cookies.state);
+        const cookieState = req.cookies.__session;
+        functions.logger.log('Received verification state', cookieState);
         functions.logger.log('Received state', req.query.state);
         /*
-        if (!req.cookies.state) {
+        if (!cookieState) {
           throw new Error('State cookie not set or expired. Maybe you took too long to authorize. Please try again.');
-        } else if (req.cookies.state !== req.query.state) {
+        } else if (cookieState !== req.query.state) {
           throw new Error('State validation failed');
         }
         */
