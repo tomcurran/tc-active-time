@@ -90,13 +90,14 @@ exports.token = functions.https.onRequest(async (req, res) => {
         functions.logger.log('Auth code exchange result received', JSON.parse(JSON.stringify(results)));
 
         // We have an Strava access token and the user identity now.
-        const accessToken = results.token.access_token;
         const stravaUserID = results.token.athlete.id;
         const profilePic = results.token.athlete.profile;
         const userName = results.token.athlete.firstname + ' ' + results.token.athlete.lastname;
 
         // Create a Firebase account and get the Custom Auth Token.
-        const firebaseToken = await createFirebaseAccount(stravaUserID, userName, profilePic, accessToken);
+        const token = JSON.parse(JSON.stringify(results));
+        delete token.athlete;
+        const firebaseToken = await createFirebaseAccount(stravaUserID, userName, profilePic, token);
         // Serve an HTML page that signs the user in and updates the user profile.
         return res.jsonp({token: firebaseToken});
       } catch (error) {
@@ -117,17 +118,16 @@ exports.token = functions.https.onRequest(async (req, res) => {
 /**
  * Creates a Firebase account with the given user profile and returns a custom auth token allowing
  * signing-in this account.
- * Also saves the accessToken to the datastore at /stravaAccessToken/$uid
+ * Also saves the token to the firestore at /users/$uid
  *
  * @return {Promise<string>} The Firebase custom auth token in a promise.
  */
-async function createFirebaseAccount(stravaID, displayName, photoURL, accessToken) {
+async function createFirebaseAccount(stravaID, displayName, photoURL, token) {
   // The UID we'll assign to the user.
   const uid = `strava:${stravaID}`;
 
-  // Save the access token to the Firebase Realtime Database.
-  // const databaseTask = admin.database().ref(`/stravaAccessToken/${uid}`).set(accessToken);
-  const databaseTask = admin.firestore().collection('users').doc(uid).set({accessToken});
+  // Save the tokens
+  const databaseTask = admin.firestore().collection('users').doc(uid).set({token});
 
   // Create or update the user account.
   const userCreationTask = admin.auth().updateUser(uid, {
@@ -148,9 +148,9 @@ async function createFirebaseAccount(stravaID, displayName, photoURL, accessToke
   // Wait for all async task to complete then generate and return a custom auth token.
   await Promise.all([userCreationTask, databaseTask]);
   // Create a Firebase custom auth token.
-  const token = await admin.auth().createCustomToken(uid);
-  functions.logger.log('Created custom token', {uid: uid, token: token});
-  return token;
+  const customToken = await admin.auth().createCustomToken(uid);
+  functions.logger.log('Created custom token', {uid: uid, customToken: customToken});
+  return customToken;
 }
 
 exports.helloWorld = functions.https.onRequest((request, response) => {
