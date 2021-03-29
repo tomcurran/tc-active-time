@@ -75,13 +75,11 @@ exports.token = functions.https.onRequest(async (req, res) => {
         const cookieState = req.cookies.__session;
         functions.logger.log('Received verification state', cookieState);
         functions.logger.log('Received state', req.query.state);
-        /*
         if (!cookieState) {
           throw new Error('State cookie not set or expired. Maybe you took too long to authorize. Please try again.');
         } else if (cookieState !== req.query.state) {
           throw new Error('State validation failed');
         }
-        */
         functions.logger.log('Received auth code', req.query.code);
         const results = await oauth2.getToken({
           code: req.query.code,
