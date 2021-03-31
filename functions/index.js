@@ -49,6 +49,7 @@ exports.redirect = functions.https.onRequest((req, res) => {
       maxAge: 3600000,
       secure: true,
       httpOnly: true,
+      sameSite: 'strict',
     });
     const redirectUri = oauth2.authorizeURL({
       redirect_uri: OAUTH_REDIRECT_URI,
