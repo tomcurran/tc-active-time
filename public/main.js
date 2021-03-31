@@ -24,6 +24,7 @@ function Demo() {
     this.nameContainer = document.getElementById('demo-name-container');
     this.uidContainer = document.getElementById('demo-uid-container');
     this.deleteButton = document.getElementById('demo-delete-button');
+    this.testButton = document.getElementById('demo-test-button');
     this.profilePic = document.getElementById('demo-profile-pic');
     this.signedOutCard = document.getElementById('demo-signed-out-card');
     this.signedInCard = document.getElementById('demo-signed-in-card');
@@ -32,6 +33,7 @@ function Demo() {
     this.signInButton.addEventListener('click', this.signIn.bind(this));
     this.signOutButton.addEventListener('click', this.signOut.bind(this));
     this.deleteButton.addEventListener('click', this.deleteAccount.bind(this));
+    this.testButton.addEventListener('click', this.test.bind(this));
     firebase.auth().onAuthStateChanged(this.onAuthStateChanged.bind(this));
   }.bind(this));
 }
@@ -71,6 +73,17 @@ Demo.prototype.deleteAccount = function() {
       firebase.auth().signOut();
     }
   });
+};
+
+Demo.prototype.test = function() {
+  var test = firebase.functions().httpsCallable('test');
+  test()
+    .then((result) => {
+      console.log(result);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 };
 
 // Load the demo.
