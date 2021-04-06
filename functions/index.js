@@ -13,8 +13,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-const OAUTH_REDIRECT_URI = `https://${process.env.GCLOUD_PROJECT}.firebaseapp.com/popup.html`;
-// const OAUTH_REDIRECT_URI = 'http://localhost:5000/popup.html';
+const OAUTH_REDIRECT_URI = 'https://active-time-dev.tomcurran.org/popup.html';
 const OAUTH_SCOPES = 'activity:read';
 
 /*
